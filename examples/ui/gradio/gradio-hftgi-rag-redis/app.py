@@ -49,27 +49,30 @@ FEEDBACK_COUNTER = Counter("feedback_stars", "Number of feedbacks by stars", ["s
 MODEL_USAGE_COUNTER = Counter('model_usage', 'Number of times a model was used', ['model_id'])
 REQUEST_TIME = Gauge('request_duration_seconds', 'Time spent processing a request', ['model_id'])
 
-start_time = time.perf_counter() # start and end time to get the precise timing of the request
-        
 def get_model_id():
     model_id = "Unavailable"
-    try:
-        r = requests.get(f'{INFERENCE_SERVER_URL}/info')
-        if r.status_code == 200:
-            model_id = r.json()['model_id']
-        end_time = time.perf_counter()
-        # Record successful request time
-        REQUEST_TIME.labels(model_id=model_id).set(end_time - start_time)
-    except TimeoutError:  # or whatever exception your client throws on timeout
-            end_time = time.perf_counter()
-    return model_id
+    r = requests.get(INFERENCE_SERVER_URL+"/info")
+    if r.status_code == 200:
+        response_json = r.json()
+        model_id = response_json['model_id']
+    return model_id        
 
 model_id = get_model_id()
+
 # PDF Generation
+PDF_FILE_DIR = "proposal-docs"
 def get_pdf_file():
-    return os.path.join("./assets", PDF_FILE_DIR, 'proposal.pdf')
+    return os.path.join("/opt/app-root/src", PDF_FILE_DIR, 'proposal.pdf')
 
 def create_pdf(text):
+    # Ensure the PDF_FILE_DIR exists
+    pdf_dir = os.path.join("/opt/app-root/src", PDF_FILE_DIR)
+    if not os.path.exists(pdf_dir):
+        try:
+            os.makedirs(pdf_dir)
+        except OSError as exc:  # Guard against race condition
+            if exc.errno != errno.EEXIST:
+                raise
     output_filename = get_pdf_file()
     print("output_filename = " + output_filename)
     html_text = markdown(text, output_format='html4')
@@ -103,8 +106,11 @@ def stream(input_text) -> Generator:
     # Create a function to call - this will run in a thread
     def task():
         MODEL_USAGE_COUNTER.labels(model_id=model_id).inc() 
+        start_time = time.perf_counter()
         resp = qa_chain({"query": input_text})
         sources = remove_source_duplicates(resp['source_documents'])
+        end_time = time.perf_counter()
+        REQUEST_TIME.labels(model_id=model_id).set(end_time - start_time)
         create_pdf(resp['result'])
         if len(sources) != 0:
             q.put("\n*Sources:* \n")

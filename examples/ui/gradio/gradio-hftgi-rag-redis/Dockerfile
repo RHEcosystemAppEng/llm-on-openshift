@@ -4,6 +4,21 @@ WORKDIR /opt/app-root/src
 
 USER 1001
 
+# Install dependencies for wkhtmltopdf
+USER root
+
+# Install dependencies required by wkhtmltopdf
+RUN yum install -y xorg-x11-fonts-75dpi xorg-x11-fonts-Type1 && \
+    yum update -y && yum clean all
+
+# Download and install wkhtmltopdf
+RUN yum install -y wget && \
+    wget https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox-0.12.6-1.centos8.x86_64.rpm && \
+    yum install -y ./wkhtmltox-0.12.6-1.centos8.x86_64.rpm && \
+    rm ./wkhtmltox-0.12.6-1.centos8.x86_64.rpm
+
+USER 1001
+
 COPY --chown=1001:0 requirements.txt ./
 
 RUN pip install --no-cache-dir -r requirements.txt && \
@@ -12,6 +27,13 @@ RUN pip install --no-cache-dir -r requirements.txt && \
     chmod -R g+w /opt/app-root/lib/python3.11/site-packages && \
     fix-permissions /opt/app-root -P
 
+
+ARG PDF_FILE_DIR=proposal-docs
+RUN mkdir -p ${PDF_FILE_DIR} && \
+    chown 1001:0 ${PDF_FILE_DIR} && \
+    chmod 755 ${PDF_FILE_DIR}
+
+COPY --chown=1001:0 . .   
 COPY --chown=1001:0 app.py ./
 COPY --chown=1001:0 assets/ ./assets/
 
