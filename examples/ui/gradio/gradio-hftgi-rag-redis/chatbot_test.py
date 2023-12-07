@@ -16,7 +16,7 @@ driver.get("https://canary-gradio-vectordb.apps.ai-dev01.kni.syseng.devcluster.o
 driver.set_window_size(1084, 811)
 timeout = 10
 
-for user in range(10):
+for user in range(20):
     element_present = EC.presence_of_element_located((By.CSS_SELECTOR, "#component-0 .scroll-hide"))
     WebDriverWait(driver, timeout).until(element_present)
 
@@ -32,7 +32,7 @@ for user in range(10):
     question_input.send_keys(f"User {user + 1}: What is OpenShift AI?")
     driver.find_element(By.ID, "component-6").click()
 
-    label_list=[1,1,1,1,1,1,1,1,2,3,4,5]
+    label_list=[1,2,3,4,5]
     random_num = random.choice(label_list)
     labelname=str(random_num)+'-radio-label'
     label_id="label[data-testid='"+labelname+"']"
