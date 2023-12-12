@@ -28,7 +28,7 @@ for user in range(10):
     # User enters the customer name
     customer_input = driver.find_element(By.CSS_SELECTOR, "#component-3 .scroll-hide")
     customer_input.clear()  # Clearing any previous input
-    customer_input.send_keys(f"User {user + 1}: Apple") 
+    customer_input.send_keys(f"Apple") 
 
     dropdown = driver.find_element(By.CSS_SELECTOR, "#component-4 .secondary-wrap")
     dropdown.click()
