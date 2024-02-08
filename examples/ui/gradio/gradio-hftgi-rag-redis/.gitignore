@@ -1,0 +1,6 @@
+.venv
+config.yaml
+.vscode
+.env
+*key.txt
+*.txt

@@ -11,7 +11,6 @@ spec:
       app: gradio-hftgi-rag-redis
   template:
     metadata:
-      creationTimestamp: null
       labels:
         app: gradio-hftgi-rag-redis
     spec:
@@ -49,26 +48,28 @@ spec:
             successThreshold: 1
             failureThreshold: 3
           env:
+            - name: CONFIG_FILE
+              value: /app-root/config/config.yaml
             - name: APP_TITLE
               value: 'Talk with your documentation'
-            - name: INFERENCE_SERVER_URL
-              value: 'https://your_inference_endpoint'
+            # - name: INFERENCE_SERVER_URL
+            #   value: 'https://your_inference_endpoint'
             - name: REDIS_URL
               value: 'redis://default:*****@10.22.33.44:12345'
             - name: REDIS_INDEX
               values: 'docs'
-            - name: MAX_NEW_TOKENS
-              value: '512'
-            - name: TOP_K
-              value: '10'
-            - name: TOP_P
-              value: '0.95'
-            - name: TYPICAL_P
-              value: '0.95'
-            - name: TEMPERATURE
-              value: '0.01'
-            - name: REPETITION_PENALTY
-              value: '1.03'
+            # - name: MAX_NEW_TOKENS
+            #   value: '512'
+            # - name: TOP_K
+            #   value: '10'
+            # - name: TOP_P
+            #   value: '0.95'
+            # - name: TYPICAL_P
+            #   value: '0.95'
+            # - name: TEMPERATURE
+            #   value: '0.01'
+            # - name: REPETITION_PENALTY
+            #   value: '1.03'
           securityContext:
             capabilities:
               drop:
@@ -94,6 +95,10 @@ spec:
           terminationMessagePolicy: File
           image: 'quay.io/rh-aiservices-bu/gradio-hftgi-rag-redis:latest'
           volumeMounts:
+            - name: providerconfig
+              mountPath: /app-root/config
+            - name: openai
+              mountPath: /app-root/config/openai
             - name: redis-schema
               mountPath: /opt/app-root/src/redis_schema.yaml
               subPath: redis_schema.yaml
@@ -101,6 +106,12 @@ spec:
               mountPath: /opt/app-root/src/assets/proposal-docs  
       dnsPolicy: ClusterFirst
       volumes:
+        - name: providerconfig
+          configMap:
+            name: providerconfig
+        - name: openai
+          secret:
+            secretName: openai
         - name: redis-schema
           configMap:
             name: redis-schema

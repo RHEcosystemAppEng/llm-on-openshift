@@ -4,3 +4,6 @@
 .vscode
 .DS_Store
 **/*.pdf
+.venv
+examples/ui/gradio/gradio-hftgi-rag-redis/config.yaml
+**/*.pyc

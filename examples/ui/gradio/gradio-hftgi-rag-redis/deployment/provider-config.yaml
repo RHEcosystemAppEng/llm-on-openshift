@@ -1,0 +1,70 @@
+apiVersion: v1
+data:
+  config.yaml: |
+    llm_providers:
+      - name: "Hugging Face"
+        enabled: True
+        models:
+          - name: <<MODEL_NAME>>
+            weight: 2
+            url: <<INFERENCE_SERVER_URL>>
+            params:
+              - name: max_new_tokens
+                value: 1024
+              - name: temperature
+                value: 0.01
+              - name: top_k
+                value: 10
+              - name: top_p
+                value: 0.95
+              - name: repetition_penalty
+                value: 1.03
+              - name: streaming
+                value: True
+              - name: typical_p
+                value: 0.95
+              - name: verbose
+                value: False
+          - name: <<MODEL_NAME>>
+            weight: 1
+            url: <<INFERENCE_SERVER_URL>>
+            params:
+              - name: max_new_tokens
+                value: 1024
+              - name: temperature
+                value: 0.01
+              - name: top_k
+                value: 10
+              - name: top_p
+                value: 0.95
+              - name: repetition_penalty
+                value: 1.03
+              - name: verbose
+                value: False
+              - name: typical_p
+                value: 0.95
+      - name: OpenAI
+        url: "https://api.openai.com/v1"
+        credentials_path: /app-root/config/openai/openai_api_key.txt
+        enabled: True
+        models:
+          - name: gpt-3.5-turbo
+            weight: 1
+            enabled: True
+            params:
+              - name: max_tokens
+                value: 512
+              - name: temperature
+                value: 0.01
+              - name: top_p
+                value: 0.95
+              - name: verbose
+                value: False
+    default_provider: "Hugging Face"
+    default_model: <<MODEL_NAME>>
+immutable: false
+kind: ConfigMap
+metadata:
+  labels:
+    app: gradio-hftgi-rag-redis
+  name: providerconfig
