@@ -1,0 +1,123 @@
+{
+  "doc_type": "pipeline",
+  "version": "3.0",
+  "json_schema": "http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json",
+  "id": "elyra-auto-generated-pipeline",
+  "primary_pipeline": "primary",
+  "pipelines": [
+    {
+      "id": "primary",
+      "nodes": [
+        {
+          "id": "626ba2b8-45d6-4c79-9811-069264901163",
+          "type": "execution_node",
+          "op": "execute-notebook-node",
+          "app_data": {
+            "component_parameters": {
+              "dependencies": [],
+              "include_subdirectories": false,
+              "outputs": [],
+              "env_vars": [
+                {
+                  "env_var": "FOLDER_PREFIX",
+                  "value": "rhoai-docs/"
+                },
+                {
+                  "env_var": "REDIS_NAMESPACE",
+                  "value": "redis"
+                },
+                {
+                  "env_var": "AWS_S3_BUCKET",
+                  "value": "suvro-foobar"
+                }
+              ],
+              "kubernetes_pod_annotations": [],
+              "kubernetes_pod_labels": [],
+              "kubernetes_secrets": [],
+              "kubernetes_shared_mem_size": {},
+              "kubernetes_tolerations": [],
+              "mounted_volumes": [],
+              "filename": "Langchain-Redis-Ingest.ipynb"
+            },
+            "label": "",
+            "ui_data": {
+              "label": "Langchain-Redis-Ingest.ipynb",
+              "image": "/notebook/pipeline-test/elyra-example-2/static/elyra/notebook.svg",
+              "x_pos": 406,
+              "y_pos": 314,
+              "description": "Run notebook file"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "app_data": {
+        "ui_data": {
+          "comments": []
+        },
+        "version": 8,
+        "runtime_type": "KUBEFLOW_PIPELINES",
+        "properties": {
+          "name": "print-env",
+          "runtime": "Data Science Pipelines",
+          "pipeline_defaults": {
+            "kubernetes_pod_labels": [],
+            "mounted_volumes": [],
+            "kubernetes_tolerations": [],
+            "kubernetes_shared_mem_size": {},
+            "kubernetes_pod_annotations": [],
+            "env_vars": [],
+            "kubernetes_secrets": [
+              {
+                "env_var": "DB_PASS",
+                "name": "redb-my-doc",
+                "key": "password"
+              },
+              {
+                "env_var": "PORT",
+                "name": "redb-my-doc",
+                "key": "port"
+              },
+              {
+                "env_var": "SERVICE_NAME",
+                "name": "redb-my-doc",
+                "key": "service_name"
+              }
+            ],
+            "runtime_image": "quay.io/modh/runtime-images@sha256:58d45c4313097ccc4a8f2c81b30a5861cb51f0aa468a3bb66c5bb1ef16526c6b"
+          },
+          "pipeline_parameters": []
+        }
+      },
+      "runtime_ref": ""
+    }
+  ],
+  "schemas": []
+}
