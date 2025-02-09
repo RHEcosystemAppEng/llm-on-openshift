@@ -6,19 +6,15 @@ from threading import Thread
 import os
 from markdown import markdown
 from llm.llm_factory import LLMFactory, NVIDIA
-import pdfkit
 import uuid
-import threading
 import gradio as gr
-from prometheus_client import Gauge, start_http_server, Counter
+from prometheus_client import start_http_server
 from dotenv import load_dotenv
 from utils import config_loader
-import llm.query_helper as QueryHelper
 from scheduler.round_robin import RoundRobinScheduler
 import pandas as pd
 from utils.callback import QueueCallback
-
-que = Queue()
+from generator.proposal_generator import FEEDBACK_COUNTER, ProposalGenerator
 
 os.environ["REQUESTS_CA_BUNDLE"] = ""
 # initialization
@@ -30,24 +26,11 @@ llm_factory.init_providers(config_loader.config)
 global sched
 
 # Parameters
-APP_TITLE = os.getenv("APP_TITLE", "Talk with your documentation")
-PDF_FILE_DIR = "proposal-docs"
+APP_TITLE = os.getenv("APP_TITLE", "LLM RAG Demo")
 TIMEOUT = int(os.getenv("TIMEOUT", 30))
 
 # Start Prometheus metrics server
 start_http_server(8000)
-
-# Create metric
-FEEDBACK_COUNTER = Counter(
-    "feedback_stars", "Number of feedbacks by stars", ["stars", "model_id"]
-)
-MODEL_USAGE_COUNTER = Counter(
-    "model_usage", "Number of times a model was used", ["model_id"]
-)
-REQUEST_TIME = Gauge(
-    "request_duration_seconds", "Time spent processing a request", ["model_id"]
-)
-
 
 def create_scheduler():
     global sched
@@ -55,28 +38,7 @@ def create_scheduler():
     # initialize scheduler
     sched = RoundRobinScheduler(provider_model_weight_list)
 
-
 create_scheduler()
-
-
-# PDF Generation
-def get_pdf_file(session_id):
-    return os.path.join("./assets", PDF_FILE_DIR, f"proposal-{session_id}.pdf")
-
-
-def create_pdf(text, session_id):
-    try:
-        output_filename = get_pdf_file(session_id)
-        html_text = markdown(text, output_format="html4")
-        pdfkit.from_string(html_text, output_filename)
-    except Exception as e:
-        print(e)
-
-
-# Function to initialize all star ratings to 0
-def initialize_feedback_counters(model_id):
-    for star in range(1, 6):  # For star ratings 1 to 5
-        FEEDBACK_COUNTER.labels(stars=str(star), model_id=model_id).inc(0)
 
 
 def remove_source_duplicates(input_list):
@@ -86,88 +48,37 @@ def remove_source_duplicates(input_list):
             unique_list.append(item.metadata["source"])
     return unique_list
 
-
-lock = threading.Lock()
-
-
-def stream(chain, que, model_input: dict, session_id, model_id) -> Generator:
-    # Create a Queue
-    job_done = object()
-
-    # Create a function to call - this will run in a thread
-    def task():
-        MODEL_USAGE_COUNTER.labels(model_id=model_id).inc()
-        # Call this function at the start of your application
-        initialize_feedback_counters(model_id)
-        with lock:
-            start_time = (
-                time.perf_counter()
-            )  # start and end time to get the precise timing of the request
-            try:
-                resp = chain.invoke(input=model_input)
-                end_time = time.perf_counter()
-                sources = remove_source_duplicates(resp["source_documents"])
-                REQUEST_TIME.labels(model_id=model_id).set(end_time - start_time)
-                create_pdf(resp["result"], session_id)
-                if len(sources) != 0:
-                    que.put("\n*Sources:* \n")
-                    for source in sources:
-                        que.put("* " + str(source) + "\n")
-            except Exception as e:
-                print(e)
-                que.put("Error executing request. Contact the administrator.")
-
-            que.put(job_done)
-
-    # Create a thread and start the function
-    t = Thread(target=task)
-    t.start()
-
-    content = ""
-
-    # Get each new token from the queue and yield for our generator
-    while True:
-        try:
-            next_token = que.get(True, timeout=100)
-            if next_token is job_done:
-                break
-            if isinstance(next_token, str):
-                content += next_token
-                yield next_token, content
-        except Empty:
-            continue
-
+def get_llm(provider_model, que):
+    
+    callback = QueueCallback(que)
+    provider_id, model_id = get_provider_model(provider_model)
+    return llm_factory.get_llm(provider_id, model_id, callback)
 
 # Gradio implementation
-def ask_llm(provider_model, model_input, chain_without_llm):
-    que = Queue()
-    callback = QueueCallback(que)
-    session_id = str(uuid.uuid4())
-    provider_id, model_id = get_provider_model(provider_model)
-    llm = llm_factory.get_llm(provider_id, model_id, callback)
-    chain = chain_without_llm(llm)
-
-    for next_token, content in stream(chain, que, model_input, session_id, model_id):
-        # Generate the download link HTML
-        download_link_html = f' <input type="hidden" id="pdf_file" name="pdf_file" value="/file={get_pdf_file(session_id)}" />'
-        yield content, download_link_html
-
 def generate_proposal(provider_model, company, product):
-    chain_without_llm = QueryHelper.get_qa_chain
+    que = Queue()
+    session_id = str(uuid.uuid4())
+    _, model_id = get_provider_model(provider_model)
+    proposal_generator = ProposalGenerator(product, company, session_id)
+    llm = get_llm(provider_model, que)
+    
+    download_link_html = f' <input type="hidden" id="pdf_file" name="pdf_file" value="/file={proposal_generator.get_pdf_file()}" />'
+    for next_token, content in proposal_generator.generate_proposal(llm, model_id, que, product, company):
+        yield content, download_link_html
 
-    query = f"Generate a sales proposal for the product '{product}', to sell to company '{company}' that includes overview, features, benefits, and support options of the product '{product}'."
-    model_input = {'query': query}
     
-    for content, download_link_html in ask_llm(provider_model, model_input, chain_without_llm):
+def update_proposal(provider_model: str, company: str, product: str, old_proposal: str, user_query: str):
+
+    que = Queue()
+    session_id = str(uuid.uuid4())
+    _, model_id = get_provider_model(provider_model)
+    proposal_generator = ProposalGenerator(product, company, session_id)
+    llm = get_llm(provider_model, que)
+    
+    download_link_html = f' <input type="hidden" id="pdf_file" name="pdf_file" value="/file={proposal_generator.get_pdf_file()}" />'
+    for next_token, content in proposal_generator.update_proposal(llm, model_id, que, old_proposal, user_query):
         yield content, download_link_html
-    
-def update_proposal(provider_model: str, old_proposal: str, user_query: str):
-    chain_without_llm = QueryHelper.get_update_proposal_chain
-    
-    model_input = {'old_proposal': old_proposal, 'user_query': user_query}
-    
-    for content, download_link_html in ask_llm(provider_model, model_input, chain_without_llm):
-        yield content, download_link_html
+   
 
 def get_provider_model(provider_model):
     if provider_model is None:
@@ -300,9 +211,10 @@ with gr.Blocks(title="HatBot", css=css) as demo:
             inputs=[input_update_proposal]
         ).success(
             update_proposal,
-            inputs=[providers_dropdown, output_answer, input_update_proposal],
+            inputs=[providers_dropdown, customer_box, product_text_box, output_answer, input_update_proposal],
             outputs=[output_answer, download_link_html]
         )
+
         def make_visable_chat_with_pdf():
             return gr.update(visible=True), gr.update(visible=True), gr.update(visible=True)
 

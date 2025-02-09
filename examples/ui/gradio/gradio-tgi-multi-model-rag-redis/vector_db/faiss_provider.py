@@ -23,7 +23,7 @@ class FAISSProvider(DBProvider):
     
     def get_retriever(self) -> VectorStoreRetriever:
         if self.retriever is None:
-            self.db = FAISS.from_texts(["dummy"], self.get_embeddings())
+            self.db = FAISS.from_texts([""], self.get_embeddings())
             self.retriever = self.db.as_retriever()
          
         return self.retriever

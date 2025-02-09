@@ -35,7 +35,7 @@ class PGVectorProvider(DBProvider):
 
             self.retriever = self.db.as_retriever(
                             search_type="similarity",
-                            search_kwargs={"k": 4, "distance_threshold": 0.5})
+                            search_kwargs={"k": 5, "distance_threshold": 0.5})
          
         return self.retriever
 
