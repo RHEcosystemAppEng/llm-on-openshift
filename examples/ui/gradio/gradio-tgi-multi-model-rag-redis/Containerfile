@@ -32,6 +32,7 @@ COPY --chown=1001:0 llm/ ./llm/
 COPY --chown=1001:0 utils/ ./utils/
 COPY --chown=1001:0 scheduler/ ./scheduler/
 COPY --chown=1001:0 vector_db/ ./vector_db/
+COPY --chown=1001:0 generator/ ./generator/
 
 EXPOSE 7860
 EXPOSE 8000

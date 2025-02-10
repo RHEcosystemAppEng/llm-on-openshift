@@ -1,3 +1,4 @@
+
 VECTOR_DB_QUERY_TEMPLATE = """
     Generate a structured project proposal for the product **{product}** addressed to the company **{company}**.
     The proposal should include the following related to the product  **{product}**:
@@ -15,7 +16,10 @@ VECTOR_DB_QUERY_TEMPLATE = """
     10. **Conclusion & Next Steps**
 """
 
+
 GENERATE_PROPOSAL_TEMPLATE = """
+### [INST]
+Instructions:
     You are an AI assistant specialized in writing structured project proposals.
     Use ONLY the provided context to generate the proposal.
     Do NOT use any external knowledge beyond what is in the context.
@@ -24,11 +28,13 @@ GENERATE_PROPOSAL_TEMPLATE = """
     {context}
     
     ---
-    
+    ### QUESTION:
     {question}
-    Generate the project proposal in markdown language.
+    Generate the project proposal in markdown format.
     Keep the response structured, concise, and professional.
+[/INST]
 """
+
 
 UPDATE_PROPOSAL_TEMPLATE = """
 ### [INST]

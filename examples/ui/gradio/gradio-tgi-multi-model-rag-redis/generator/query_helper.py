@@ -50,18 +50,18 @@ class QueryHelper:
     def get_qa_chain(self, llm):
         generate_proposal_prompt = PromptTemplate.from_template(GENERATE_PROPOSAL_TEMPLATE)
 
-        multi_query_retriever = MultiQueryRetriever.from_llm(
-                        retriever=self.retriever, llm=llm , parser_key="lines"
-                    )
+        # multi_query_retriever = MultiQueryRetriever.from_llm(
+        #                 retriever=self.retriever, llm=llm , parser_key="lines"
+        #             )
         
-        import logging
+        # import logging
 
-        logging.basicConfig()
-        logging.getLogger("langchain.retrievers.multi_query").setLevel(logging.INFO)
+        # logging.basicConfig()
+        # logging.getLogger("langchain.retrievers.multi_query").setLevel(logging.INFO)
 
         return RetrievalQA.from_chain_type(
             llm,
-            retriever=multi_query_retriever,
+            retriever=self.retriever,
             chain_type_kwargs={"prompt": generate_proposal_prompt},
             return_source_documents=True,
         )

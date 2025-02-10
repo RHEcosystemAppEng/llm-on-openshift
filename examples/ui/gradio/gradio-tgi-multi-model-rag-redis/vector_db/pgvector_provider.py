@@ -1,6 +1,6 @@
 from typing import Optional
 from vector_db.db_provider import DBProvider
-from langchain.vectorstores.pgvector import PGVector
+from langchain_community.vectorstores import PGVector
 from langchain_core.vectorstores import VectorStoreRetriever
 import os
 

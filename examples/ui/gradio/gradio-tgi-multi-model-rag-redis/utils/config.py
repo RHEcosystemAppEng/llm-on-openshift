@@ -1,6 +1,6 @@
 """Config classes for the configuration structure."""
 
-from typing import Optional
+from typing import Dict, Optional
 
 def _get_attribute_from_file(data: dict, file_name_key: str) -> Optional[str]:
     """Retrieve value of an attribute from a file."""
@@ -64,7 +64,7 @@ class ProviderConfig():
 class LLMProviders():
     """LLM providers configuration."""
 
-    providers: dict[str, ProviderConfig] = {}
+    providers: Dict[str, ProviderConfig] = {}
 
     def __init__(self, data: Optional[dict] = None) -> None:
         """Initialize configuration and perform basic validation."""

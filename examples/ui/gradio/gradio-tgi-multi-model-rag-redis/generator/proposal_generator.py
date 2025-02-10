@@ -13,7 +13,6 @@ from markdown import markdown
 from generator.query_helper import QueryHelper
 from langchain.llms.base import LLM
 
-
 PDF_FILE_DIR = "proposal-docs"
 
 # Create metric
