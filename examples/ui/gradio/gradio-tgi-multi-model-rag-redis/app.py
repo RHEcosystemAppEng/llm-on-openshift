@@ -1,5 +1,7 @@
 import os
 from dotenv import load_dotenv
+
+from ui.question_answer_tab import QuestionAndAnswerTab
 load_dotenv()
 
 import os
@@ -56,12 +58,17 @@ css = """
 
 with gr.Blocks(title="HatBot", css=css) as demo:
     provider_model_var = gr.State()
-    with gr.Tab("Chatbot", id=1) as proposal_tab:
+    with gr.Tab("Proposal Generator Chatbot", id=1) as proposal_tab:
         proposal_generator_tab = ProposalGenerationTab(proposal_tab, demo)
         proposal_generator_tab.generate(gr, provider_model_var)
+    
+    with gr.Tab(
+        label="Q & A Chatbot", id=2) as q_a_tab:
+        configuration_tab = QuestionAndAnswerTab(q_a_tab, demo)
+        configuration_tab.generate(gr, provider_model_var)
 
     with gr.Tab(
-        label="Configuration", id=2, elem_classes="configuration-tab"
+        label="Configuration", id=3, elem_classes="configuration-tab"
     ) as provider_tab:
         configuration_tab = ConfigurationTab(provider_tab, demo)
         configuration_tab.generate(gr, provider_model_var)

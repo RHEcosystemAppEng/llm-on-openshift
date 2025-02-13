@@ -2,6 +2,7 @@ import time
 
 import threading
 import os
+from typing import Optional
 from generator.template import VECTOR_DB_QUERY_TEMPLATE
 import pdfkit
 from prometheus_client import Gauge, Counter
@@ -12,8 +13,14 @@ from threading import Thread
 from markdown import markdown
 from generator.query_helper import QueryHelper
 from langchain.llms.base import LLM
+from langchain_core.chat_history import BaseChatMessageHistory
+from langchain_community.chat_message_histories import ChatMessageHistory
+from langchain_core.runnables.history import RunnableWithMessageHistory
 
 PDF_FILE_DIR = "proposal-docs"
+
+### Statefully manage chat history ###
+store = {}
 
 # Create metric
 FEEDBACK_COUNTER = Counter(
@@ -29,9 +36,7 @@ REQUEST_TIME = Gauge(
 class ProposalGenerator:
   """Generator project proposal for a given product addressed to a company"""
 
-  def __init__(self, product: str, company: str, session_id: str):
-    self.product = product
-    self.company = company
+  def __init__(self, session_id: str):
     self.lock = threading.Lock()
     self.session_id = session_id
 
@@ -45,6 +50,7 @@ class ProposalGenerator:
     model_input = {'query': query}
 
     return self.stream(proposal_chain, que, model_input, model_id)
+  
   
   def update_proposal(self, llm: LLM, model_id: str , que: Queue, old_proposal: str, user_query: str) -> Generator:
 
@@ -81,7 +87,27 @@ class ProposalGenerator:
             unique_list.append(item.metadata["source"])
     return unique_list
   
-  def stream(self, chain: LLMChain, que: Queue, model_input: dict, model_id: str) -> Generator:
+  def get_session_history(self) -> BaseChatMessageHistory:
+    if self.session_id not in store:
+        store[self.session_id] = ChatMessageHistory()
+    return store[self.session_id]
+  
+  def get_answer(self, llm: LLM, model_id: str , que: Queue, query: str):
+    query_helper = QueryHelper()
+    conversational_rag_chain = RunnableWithMessageHistory(
+        query_helper.create_question_answer_chain(llm),
+        self.get_session_history,
+        input_messages_key="input",
+        history_messages_key="chat_history",
+        output_messages_key="answer"
+    )
+
+    config={"configurable": {"session_id": self.session_id}}
+    model_input = {'input': query}
+    return self.stream(conversational_rag_chain, que, model_input, model_id, False, False, config)
+
+  
+  def stream(self, chain: LLMChain, que: Queue, model_input: dict, model_id: str, generate_pdf: Optional[bool] = True, include_sources: Optional[bool] = True, config: Optional[dict] = None) -> Generator:
     # Create a Queue
     job_done = object()
     # Create a function to call - this will run in a thread
@@ -94,15 +120,17 @@ class ProposalGenerator:
                 time.perf_counter()
             )  # start and end time to get the precise timing of the request
             try:
-                resp = chain.invoke(input=model_input)
+                resp = chain.invoke(input=model_input, config=config)
                 end_time = time.perf_counter()
-                sources = self.remove_source_duplicates(resp["source_documents"])
                 REQUEST_TIME.labels(model_id=model_id).set(end_time - start_time)
-                self.create_pdf(resp["result"])
-                if len(sources) != 0:
-                    que.put("\n*Sources:* \n")
-                    for source in sources:
-                        que.put("* " + str(source) + "\n")
+                if generate_pdf:
+                  self.create_pdf(resp["result"])
+                if include_sources:
+                  sources = self.remove_source_duplicates(resp["source_documents"])
+                  if len(sources) != 0:
+                      que.put("\n*Sources:* \n")
+                      for source in sources:
+                          que.put("* " + str(source) + "\n")
             except Exception as e:
                 print(e)
                 que.put("Error executing request. Contact the administrator.")

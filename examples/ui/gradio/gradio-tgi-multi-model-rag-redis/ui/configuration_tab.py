@@ -292,39 +292,6 @@ class ConfigurationTab:
                 ],
             )
 
-        # def initialize(provider_model):
-        #     if provider_model is None:
-        #         provider_model_tuple = get_selected_provider()
-        #         if provider_model_tuple is not None:
-        #             provider_model = provider_model_tuple[0]
-        #     print(provider_model)
-        #     provider_id, model_id = get_provider_model(provider_model)
-        #     provider_visible = is_provider_visible()
-        #     provider_model_list = config_loader.get_provider_model_list()
-        #     p_dropdown = gr.Dropdown(
-        #         choices=provider_model_list,
-        #         label="Providers",
-        #         visible=provider_visible,
-        #         value=provider_model,
-        #     )
-        #     m = f"<div><span id='model_id'>Model: {model_id}</span></div>"
-        #     df = get_provider_list_as_df()
-        #     df_component = gr.Dataframe(
-        #         headers=["Provider", "Model", "URL", "Enabled"], value=df
-        #     )
-        #     td = gr.Dropdown(
-        #         ["round_robin", "all"],
-        #         label="Type",
-        #         value=config_loader.config.type,
-        #         info="Select LLM providers based on type (round_robin,  all)",
-        #     )
-        #     return {
-        #         providers_dropdown: p_dropdown,
-        #         provider_model_var: provider_model,
-        #         model_text: m,
-        #         dataframe_ui: df_component,
-        #         type_dropdown: td,
-        #     }
 
         def validate_add_provider(
             provider_name, model_name, url, temperature, max_toxens, weight

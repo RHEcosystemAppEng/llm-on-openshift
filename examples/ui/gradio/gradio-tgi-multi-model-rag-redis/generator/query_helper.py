@@ -1,4 +1,4 @@
-from generator.template import GENERATE_PROPOSAL_TEMPLATE, QUERY_UPDATE_PROPOSAL_TEMPLATE, UPDATE_PROPOSAL_TEMPLATE
+from generator.template import CONTEXTUALIZE_Q_PROMPT, GENERATE_PROPOSAL_TEMPLATE, Q_AND_A_PROMPT, QUERY_UPDATE_PROPOSAL_TEMPLATE, UPDATE_PROPOSAL_TEMPLATE
 from langchain.prompts import PromptTemplate
 import os
 from langchain.chains import RetrievalQA
@@ -6,6 +6,8 @@ from vector_db.db_provider_factory import FAISS, DBFactory
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.runnables import RunnableParallel, RunnableLambda
 from langchain.retrievers.multi_query import MultiQueryRetriever
+from langchain.chains import create_history_aware_retriever, create_retrieval_chain
+
 
 ############################
 # LLM chain implementation #
@@ -72,3 +74,17 @@ class QueryHelper:
         combine_docs_chain = create_stuff_documents_chain(llm, update_proposal_prompt)
 
         return RunnableParallel({'context': query_update_proposal_prompt| RunnableLambda(lambda x: x.text)  | self.retriever, 'old_proposal': lambda x:x['old_proposal'], 'user_query': lambda x: x['user_query']}) | RunnableParallel({"source_documents": lambda x: x['context'], 'result': combine_docs_chain})
+    
+    # Initialize RAG-based QA system
+    def create_qa_chain(self, llm):
+        return RetrievalQA.from_chain_type(llm, retriever=self.retriever)
+
+    
+    def create_question_answer_chain(self, llm):
+        history_aware_retriever = create_history_aware_retriever(
+            llm, self.retriever, CONTEXTUALIZE_Q_PROMPT)
+
+        question_answer_chain = create_stuff_documents_chain(llm, Q_AND_A_PROMPT)
+        return create_retrieval_chain(history_aware_retriever, question_answer_chain)
+    
+    

@@ -20,7 +20,7 @@ class ProposalGenerationTab:
         que = Queue()
         session_id = str(uuid.uuid4())
         _, model_id = get_provider_model(provider_model)
-        proposal_generator = ProposalGenerator(product, company, session_id)
+        proposal_generator = ProposalGenerator(session_id)
         llm = get_llm(provider_model, que)
         
         download_link_html = f' <input type="hidden" id="pdf_file" name="pdf_file" value="/file={proposal_generator.get_pdf_file()}" />'
@@ -33,7 +33,7 @@ class ProposalGenerationTab:
         que = Queue()
         session_id = str(uuid.uuid4())
         _, model_id = get_provider_model(provider_model)
-        proposal_generator = ProposalGenerator(product, company, session_id)
+        proposal_generator = ProposalGenerator(session_id)
         llm = get_llm(provider_model, que)
         
         download_link_html = f' <input type="hidden" id="pdf_file" name="pdf_file" value="/file={proposal_generator.get_pdf_file()}" />'

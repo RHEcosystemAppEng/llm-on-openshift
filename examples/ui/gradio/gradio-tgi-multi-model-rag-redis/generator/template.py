@@ -1,3 +1,4 @@
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
 VECTOR_DB_QUERY_TEMPLATE = """
     Generate a structured project proposal for the product **{product}** addressed to the company **{company}**.
@@ -65,3 +66,42 @@ Old Proposal:
 {user_query}
 [/INST]
 """
+
+
+### Contextualize question ###
+CONTEXTUALIZE_Q_SYSTEM_PROMPT = (
+    "Given a chat history and the latest user question "
+    "which might reference context in the chat history, "
+    "formulate a standalone question which can be understood "
+    "without the chat history. Do NOT answer the question, "
+    "just reformulate it if needed and otherwise return it as is."
+)
+
+CONTEXTUALIZE_Q_PROMPT = ChatPromptTemplate.from_messages(
+    [
+        ("system", CONTEXTUALIZE_Q_SYSTEM_PROMPT),
+        MessagesPlaceholder("chat_history"),
+        ("human", "{input}"),
+    ]
+)
+
+Q_AND_A_SYSTEM_PROMPT = (
+"### [INST]"
+"Instructions:"
+    "You are an assistant for question-answering tasks. "
+    "Use the following pieces of retrieved context to answer "
+    "the question. If you don't know the answer, say that you "
+    "don't know. Use three sentences maximum and keep the "
+    "answer concise."
+    "\n\n"
+    "{context}"
+"[/INST]"
+)
+
+Q_AND_A_PROMPT = ChatPromptTemplate.from_messages(
+    [
+        ("system", Q_AND_A_SYSTEM_PROMPT),
+        MessagesPlaceholder("chat_history"),
+        ("human", "{input}"),
+    ]
+)
