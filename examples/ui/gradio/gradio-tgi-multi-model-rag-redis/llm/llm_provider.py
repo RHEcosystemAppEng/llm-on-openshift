@@ -77,7 +77,7 @@ class LLMProvider:
         return cfg
 
     def get_llm(self, callback) -> LLM:
-      return None, None
+      return None
     
     def _get_llm_url(self, default: str) -> str:
         return (

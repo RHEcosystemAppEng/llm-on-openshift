@@ -46,6 +46,7 @@ class NeMoProvider(LLMProvider):
         creds = "dummy-api-key" # ChatOpenAI requires creds to be not none
 
       # Creating an object of custom handler
+    streaming = True if callback else False
     params: dict = {
         "base_url": self._get_llm_url(""),
         "model": self.model,
@@ -53,13 +54,15 @@ class NeMoProvider(LLMProvider):
         "organization": None,
         "timeout": None,
         "cache": None,
-        "streaming": True,
+        "streaming": streaming,
         "temperature": 0.01,
         "max_tokens": 512,
         #"top_p": 0.95,
         "verbose": True,
         "callbacks": [callback]
     }
+    if streaming == True: 
+      params["callbacks"] = [callback] 
     # if self.model_config.params:
     #   params.update(self.model_config.params)
     os.environ["OPENAI_API_KEY"] =  creds

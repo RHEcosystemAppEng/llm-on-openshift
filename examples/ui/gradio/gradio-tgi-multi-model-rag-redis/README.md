@@ -42,7 +42,7 @@ Create venv:
 Activate:
 `source .venv/bin activate`
 Install requirements-local.txt
-`pip install -r requirements-local.txt`
+`pip install -r requirements.txt`
 
 Configurations files:
 - `.env`: You must provide REDIS or PGVECTOR 

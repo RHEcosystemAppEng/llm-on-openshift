@@ -21,7 +21,7 @@ class ProposalGenerationTab:
         session_id = str(uuid.uuid4())
         _, model_id = get_provider_model(provider_model)
         proposal_generator = ProposalGenerator(session_id)
-        llm = get_llm(provider_model, que)
+        llm = get_llm(provider_model, True, que)
         
         download_link_html = f' <input type="hidden" id="pdf_file" name="pdf_file" value="/file={proposal_generator.get_pdf_file()}" />'
         for next_token, content in proposal_generator.generate_proposal(llm, model_id, que, product, company):
@@ -34,7 +34,7 @@ class ProposalGenerationTab:
         session_id = str(uuid.uuid4())
         _, model_id = get_provider_model(provider_model)
         proposal_generator = ProposalGenerator(session_id)
-        llm = get_llm(provider_model, que)
+        llm = get_llm(provider_model, True, que)
         
         download_link_html = f' <input type="hidden" id="pdf_file" name="pdf_file" value="/file={proposal_generator.get_pdf_file()}" />'
         for next_token, content in proposal_generator.update_proposal(llm, model_id, que, old_proposal, user_query):
@@ -76,12 +76,11 @@ class ProposalGenerationTab:
                     elem_id="source-container", interactive=True, label="Rating"
                 )
                 def proposal_gen_tab_selected(provider_model):
-                    print("Proposal tab selected")
                     if provider_model is None:
                         provider_model_tuple = get_selected_provider()
                         if provider_model_tuple is not None:
                             provider_model = provider_model_tuple[0]
-                    print(provider_model)
+
                     provider_id, model_id = get_provider_model(provider_model)
                     provider_visible = is_provider_visible()
                     provider_model_list = config_loader.get_provider_model_list()

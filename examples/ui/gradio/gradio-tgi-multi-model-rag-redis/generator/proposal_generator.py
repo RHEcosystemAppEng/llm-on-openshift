@@ -17,6 +17,11 @@ from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.runnables.history import RunnableWithMessageHistory
 
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.prompts import MessagesPlaceholder
+from langchain_core.messages import HumanMessage, AIMessage
+
+
 PDF_FILE_DIR = "proposal-docs"
 
 ### Statefully manage chat history ###
@@ -45,7 +50,7 @@ class ProposalGenerator:
     query_helper = QueryHelper()
     query = VECTOR_DB_QUERY_TEMPLATE.format(product = product, company = company)
 
-    proposal_chain = query_helper.get_qa_chain(llm)
+    proposal_chain = query_helper.get_proposal_template_chain(llm)
 
     model_input = {'query': query}
 
@@ -92,22 +97,48 @@ class ProposalGenerator:
         store[self.session_id] = ChatMessageHistory()
     return store[self.session_id]
   
-  def get_answer(self, llm: LLM, model_id: str , que: Queue, query: str):
-    query_helper = QueryHelper()
-    conversational_rag_chain = RunnableWithMessageHistory(
-        query_helper.create_question_answer_chain(llm),
-        self.get_session_history,
-        input_messages_key="input",
-        history_messages_key="chat_history",
-        output_messages_key="answer"
-    )
+  def remove_role(self, message:str) -> str:
+    if message is not None:
+      message = message.replace("Assistant:","",1)
+      message = message.replace("AI:","",1)
+      message = message.replace("Human:","",1)
+      if "</think>" in message:
+        message = message.split("</think>")[-1]
 
-    config={"configurable": {"session_id": self.session_id}}
-    model_input = {'input': query}
-    return self.stream(conversational_rag_chain, que, model_input, model_id, False, False, config)
+    return message
 
   
-  def stream(self, chain: LLMChain, que: Queue, model_input: dict, model_id: str, generate_pdf: Optional[bool] = True, include_sources: Optional[bool] = True, config: Optional[dict] = None) -> Generator:
+  def format_chat_history(self, chat_history: list):
+    formatted_chat_history = []
+    for i in range(len(chat_history)-1):
+      conversation=chat_history[i]
+      formatted_chat_history.append(HumanMessage(content=self.remove_role(conversation[0])))
+      formatted_chat_history.append(AIMessage(content=self.remove_role(conversation[1])))
+    return formatted_chat_history
+  
+  def post_process(self, answer):
+     answer = answer.split("Human:")[0]
+     answer = answer.replace("AI:", "")
+     answer = answer.replace("Assistant:", "")
+     return answer
+
+     
+
+  def get_answer(self, llm: LLM, model_id: str , que: Queue, query: str, chat_history: list):
+    query_helper = QueryHelper()
+    chain = query_helper.get_qa_chain(llm)
+    model_input = {'input': query, "chat_history": self.format_chat_history(chat_history)}
+    MODEL_USAGE_COUNTER.labels(model_id=model_id).inc()
+    # Call this function at the start of your application
+    self.initialize_feedback_counters(model_id)
+    start_time = (
+        time.perf_counter()
+    ) 
+    resp = chain.invoke(input=model_input)
+    
+    return self.post_process(resp["answer"])
+  
+  def stream(self, chain: LLMChain, que: Queue, model_input: dict, model_id: str) -> Generator:
     # Create a Queue
     job_done = object()
     # Create a function to call - this will run in a thread
@@ -120,17 +151,21 @@ class ProposalGenerator:
                 time.perf_counter()
             )  # start and end time to get the precise timing of the request
             try:
-                resp = chain.invoke(input=model_input, config=config)
+                resp = chain.invoke(input=model_input)
+
                 end_time = time.perf_counter()
                 REQUEST_TIME.labels(model_id=model_id).set(end_time - start_time)
-                if generate_pdf:
-                  self.create_pdf(resp["result"])
-                if include_sources:
-                  sources = self.remove_source_duplicates(resp["source_documents"])
-                  if len(sources) != 0:
-                      que.put("\n*Sources:* \n")
-                      for source in sources:
-                          que.put("* " + str(source) + "\n")
+                self.create_pdf(resp["result"])
+                source_documents = resp.get("source_documents")
+                if source_documents is not None:
+                    sources = self.remove_source_duplicates(resp["source_documents"])
+                else:
+                    context = resp["context"]
+                    sources = list(dict.fromkeys([doc.metadata["source"] for doc in context]))
+                if len(sources) != 0:
+                    que.put("\n*Sources:* \n")
+                    for source in sources:
+                        que.put("* " + str(source) + "\n")
             except Exception as e:
                 print(e)
                 que.put("Error executing request. Contact the administrator.")

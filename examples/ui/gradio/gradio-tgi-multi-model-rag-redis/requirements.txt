@@ -45,7 +45,6 @@ mypy-extensions==1.0.0; python_version >= '3.5'
 networkx==3.1; python_version >= '3.8'
 nltk==3.8.1; python_version >= '3.7'
 numpy==1.26.0; python_version < '3.13' and python_version >= '3.9'
-
 packaging==23.2; python_version >= '3.7'
 pandas==2.1.1; python_version >= '3.9'
 pillow==10.0.1; python_version >= '3.8'

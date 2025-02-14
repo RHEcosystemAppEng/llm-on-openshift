@@ -86,16 +86,15 @@ CONTEXTUALIZE_Q_PROMPT = ChatPromptTemplate.from_messages(
 )
 
 Q_AND_A_SYSTEM_PROMPT = (
-"### [INST]"
-"Instructions:"
-    "You are an assistant for question-answering tasks. "
-    "Use the following pieces of retrieved context to answer "
-    "the question. If you don't know the answer, say that you "
-    "don't know. Use three sentences maximum and keep the "
-    "answer concise."
-    "\n\n"
-    "{context}"
-"[/INST]"
+    """
+    You are an assistant for question-answering tasks. 
+    Use the following pieces of retrieved context to
+    answer the question. If you don't know the answer, 
+    just say that you don't know. Use three sentences maximum 
+    and keep the answer concise.
+    Context: {context} 
+
+    """
 )
 
 Q_AND_A_PROMPT = ChatPromptTemplate.from_messages(
@@ -105,3 +104,22 @@ Q_AND_A_PROMPT = ChatPromptTemplate.from_messages(
         ("human", "{input}"),
     ]
 )
+
+Q_A_PROMPT = """
+### [INST]
+Instructions:
+    You are an AI assistant for question-answering tasks. Use the following pieces of retrieved context to
+    answer the question. If you don't know the answer, just say that you don't know. Use three sentences maximum 
+    and keep the answer concise.
+    
+    ### Context:
+    {context}
+    
+    ---
+    ### QUESTION: 
+    {question}
+
+    Helpful Answer:
+[/INST]
+"""
+

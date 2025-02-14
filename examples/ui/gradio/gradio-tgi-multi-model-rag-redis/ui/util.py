@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 from utils import config_loader
 from scheduler.round_robin import RoundRobinScheduler
 import pandas as pd
-from utils.callback import QueueCallback
+from generator.callback import QueueCallback
 from generator.proposal_generator import FEEDBACK_COUNTER, ProposalGenerator
 
 config_loader.init_config()
@@ -48,9 +48,10 @@ def get_provider_model(provider_model):
     s = provider_model.split(": ")
     return s[0], s[1]
 
-def get_llm(provider_model, que):
-    
-    callback = QueueCallback(que)
+def get_llm(provider_model, streaming, que):
+    callback = None
+    if streaming:
+        callback = QueueCallback(que)
     provider_id, model_id = get_provider_model(provider_model)
     return llm_factory.get_llm(provider_id, model_id, callback)
 

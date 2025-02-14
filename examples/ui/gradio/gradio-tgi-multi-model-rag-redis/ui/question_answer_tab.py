@@ -19,17 +19,6 @@ class QuestionAndAnswerTab:
         self.tab = tab
         self.parent =  parent
 
-    # Gradio implementation
-    def answer_question(self, provider_model, session_id, question):
-        que = Queue()
-        _, model_id = get_provider_model(provider_model)
-        proposal_generator = ProposalGenerator(session_id)
-        llm = get_llm(provider_model, que)
-        
-        for next_token, content in proposal_generator.get_answer(llm, model_id, que, question):
-            yield content
-
-
     def generate(self, gr, provider_model_var):
         provider_model_list = config_loader.get_provider_model_list()
         provider_visible = is_provider_visible()
@@ -64,13 +53,13 @@ class QuestionAndAnswerTab:
                     FEEDBACK_COUNTER.labels(stars=str(star), model_id=model_id).inc()
                     return f"Received {star} star feedback. Thank you!"
                 
-                def proposal_gen_tab_selected(provider_model):
-                    print("Proposal tab selected")
+                def q_and_a_tab_selected(provider_model):
+                    
                     if provider_model is None:
                         provider_model_tuple = get_selected_provider()
                         if provider_model_tuple is not None:
                             provider_model = provider_model_tuple[0]
-                    print(provider_model)
+
                     provider_id, model_id = get_provider_model(provider_model)
                     provider_visible = is_provider_visible()
                     provider_model_list = config_loader.get_provider_model_list()
@@ -88,7 +77,7 @@ class QuestionAndAnswerTab:
                     }
 
                 self.tab.select(
-                    proposal_gen_tab_selected,
+                    q_and_a_tab_selected,
                     inputs=[provider_model_var],
                     outputs=[providers_dropdown, model_text]
                 )
@@ -103,14 +92,14 @@ class QuestionAndAnswerTab:
                     chat_history[-1][1] = ''
                     que = Queue()
                     _, model_id = get_provider_model(provider_model)
-                    print("in answer question  ", provider_model)
                     proposal_generator = ProposalGenerator(session_id)
-                    llm = get_llm(provider_model, que)
+                    llm = get_llm(provider_model, False, que)
         
-                    for next_token, content in proposal_generator.get_answer(llm, model_id, que, question):
-                        chat_history[-1][1] = content
-                        yield '', chat_history
-                
+                    content = proposal_generator.get_answer(llm, model_id, que, question, chat_history)
+                    chat_history[-1][1] = content
+                    return '', chat_history
+
+
                 chatbot = gr.Chatbot(label="Ask LLM")
                 msg = gr.Textbox(label='User query')
                 clear = gr.ClearButton()
@@ -128,6 +117,6 @@ class QuestionAndAnswerTab:
             return f"Received {star} star feedback. Thank you!"
 
         self.parent.load(
-            proposal_gen_tab_selected,
+            q_and_a_tab_selected,
             inputs=[provider_model_var],
             outputs=[providers_dropdown, model_text])
