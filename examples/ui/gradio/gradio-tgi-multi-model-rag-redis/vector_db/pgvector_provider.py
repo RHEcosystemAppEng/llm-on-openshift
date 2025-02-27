@@ -1,6 +1,6 @@
 from typing import Optional
 from vector_db.db_provider import DBProvider
-from langchain.vectorstores.pgvector import PGVector
+from langchain_community.vectorstores import PGVector
 from langchain_core.vectorstores import VectorStoreRetriever
 import os
 
@@ -35,7 +35,7 @@ class PGVectorProvider(DBProvider):
 
             self.retriever = self.db.as_retriever(
                             search_type="similarity",
-                            search_kwargs={"k": 4, "distance_threshold": 0.5})
+                            search_kwargs={"k": 5, "distance_threshold": 0.5})
          
         return self.retriever
 

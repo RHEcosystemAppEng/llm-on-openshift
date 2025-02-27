@@ -53,6 +53,11 @@ class LLMProvider:
         self.provider_config = self._get_provider_config()
         self.model_config = self.provider_config.models.get(self.model)
 
+    def get_model(self) -> str:
+        return self.model
+    
+    def get_provider(self) -> str:
+        return self.provider
     
     def _get_provider_config(self) -> ProviderConfig:
         cfg = config_loader.llm_config.providers.get(self.provider)
@@ -72,7 +77,7 @@ class LLMProvider:
         return cfg
 
     def get_llm(self, callback) -> LLM:
-      return None, None
+      return None
     
     def _get_llm_url(self, default: str) -> str:
         return (

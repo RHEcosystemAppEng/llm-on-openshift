@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Dict
 from llm.huggingface_provider import HuggingFaceProvider
 from llm.llm_provider import LLMProvider
 from llm.nemo_provider import NeMoProvider
@@ -13,7 +13,7 @@ OPENAI = "OpenAI"
 OPENSHIFT_AI_VLLM="OpenShift AI (vLLM)"
 
 class LLMFactory:
-    _providers: dict[str, LLMProvider] = {}
+    _providers: Dict[str, LLMProvider] = {}
     def __init__(self):
         pass
 

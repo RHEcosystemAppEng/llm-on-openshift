@@ -27,7 +27,7 @@ class HuggingFaceProvider(LLMProvider):
     #         "provider will be unavailable."
     #     )
     #     raise e
-
+    streaming = True if callback else False
     params: dict = {
         "inference_server_url": self._get_llm_url(""),
 #         "model_kwargs": {},  # TODO: add model args
@@ -37,10 +37,11 @@ class HuggingFaceProvider(LLMProvider):
         "top_k": 10,
         "top_p": 0.95,
         "repetition_penalty": 1.03,
-        "streaming": True,
-        "verbose": False,
-        "callbacks": [callback]
+        "streaming": streaming,
+        "verbose": False
     }
+    if streaming == True: 
+      params["callbacks"] = [callback] 
       # if self.model_config.params:
       #   params.update(self.model_config.params)  # override parameters
     self._llm_instance = HuggingFaceTextGenInference(**params)
