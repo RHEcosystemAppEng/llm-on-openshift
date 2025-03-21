@@ -20,7 +20,7 @@ class OpenAIProvider(LLMProvider):
             "Missing openai libraries. Openai provider will be unavailable."
         )
         raise e
-
+    streaming = True if callback else False
     params: dict = {
         "base_url": self._get_llm_url("https://api.openai.com/v1"),
         "openai_api_key": self._get_llm_credentials(),
@@ -29,12 +29,14 @@ class OpenAIProvider(LLMProvider):
         "organization": None,
         "timeout": None,
         "cache": None,
-        "streaming": True,
+        "streaming": streaming,
         "temperature": 0.01,
         # "top_p": 0.95,
-        "verbose": False,
-        "callbacks": [callback]
+        "verbose": False
     }
+    if streaming == True: 
+      params["callbacks"] = [callback] 
+     
     os.environ["OPENAI_API_KEY"] =  self._get_llm_credentials()
       # if self.model_config.params:
       #   params.update(self.model_config.params)  # override parameters

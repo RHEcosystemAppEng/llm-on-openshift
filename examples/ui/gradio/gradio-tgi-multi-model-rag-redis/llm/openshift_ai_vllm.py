@@ -25,19 +25,22 @@ class OpenShiftAIvLLM(LLMProvider):
     if creds in (None, ''):
         creds = "dummy-api-key" # ChatOpenAI requires creds to be not none
 
+    streaming = True if callback else False
     # Creating an object of custom handler
     params: dict = {
         "base_url": self._get_llm_url(""),
         "model": self.model,
         "timeout": None,
         "cache": None,
-        "streaming": True,
+        "streaming": streaming,
         "temperature": 0.1,
         "max_tokens": 1024,
         #"top_p": 0.95,
-        "verbose": True,
-        "callbacks": [callback]
+        "verbose": True
+
     }
+    if streaming == True: 
+      params["callbacks"] = [callback] 
     os.environ["OPENAI_API_KEY"] =  creds
     async_client=httpx.AsyncClient(verify=False)
     http_client=httpx.Client(verify=False)

@@ -1,5 +1,5 @@
 from typing import Optional
-from langchain.vectorstores.redis import Redis, RedisVectorStoreRetriever
+from langchain_community.vectorstores import Redis
 from langchain_core.vectorstores import VectorStoreRetriever
 from vector_db.db_provider import DBProvider
 import os

@@ -1,17 +1,9 @@
-import os
-from typing import Tuple
-from llm.huggingface_provider import HuggingFaceProvider
-from llm.llm_provider import LLMProvider
-from llm.nemo_provider import NeMoProvider
-from llm.openai_provider import OpenAIProvider
-from langchain.llms.base import LLM
-from queue import Queue
-
 from vector_db.db_provider import DBProvider
 from vector_db.faiss_provider import FAISSProvider
 from vector_db.pgvector_provider import PGVectorProvider
 from vector_db.redis_provider import RedisProvider
 from vector_db.elastic_provider import ElasticProvider
+from langchain_core.vectorstores import VectorStoreRetriever
 
 PGVECTOR = "PGVECTOR"
 REDIS = "REDIS"
@@ -41,7 +33,7 @@ class DBFactory:
         
         return self.providers[type]
     
-    def get_retriever(self, type: str):
+    def get_retriever(self, type: str) -> VectorStoreRetriever:
         return self.get_db_provider(type).get_retriever()
 
     @classmethod 
