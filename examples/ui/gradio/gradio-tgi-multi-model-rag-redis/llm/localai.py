@@ -1,5 +1,7 @@
 from typing import Any, Dict
+
 from langchain_openai import ChatOpenAI
+
 
 class ChatOpenAILocal(ChatOpenAI):
     @property
@@ -8,7 +10,7 @@ class ChatOpenAILocal(ChatOpenAI):
         params = {
             "model": self.model_name,
             "stream": self.streaming,
-            #"n": self.n,
+            # "n": self.n,
             "temperature": self.temperature,
             **self.model_kwargs,
         }

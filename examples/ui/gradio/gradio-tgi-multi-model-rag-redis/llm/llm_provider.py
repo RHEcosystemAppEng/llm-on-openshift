@@ -1,10 +1,12 @@
 """LLM backend libraries loader."""
 
-from typing import Optional, Tuple
-from utils import config_loader
+from typing import Optional
+
 from langchain.llms.base import LLM
 
+from utils import config_loader
 from utils.config import ProviderConfig
+
 
 class LLMConfigurationError(Exception):
     """LLM configuration is wrong."""
@@ -31,9 +33,10 @@ class ModelConfigInvalidError(LLMConfigurationError):
 
 
 class LLMProvider:
-    """Load LLM backend.
-    """
-    _llm_instance: Optional [LLM] = None
+    """Load LLM backend."""
+
+    _llm_instance: Optional[LLM] = None
+
     def __init__(
         self,
         provider: Optional[str] = None,
@@ -55,10 +58,10 @@ class LLMProvider:
 
     def get_model(self) -> str:
         return self.model
-    
+
     def get_provider(self) -> str:
         return self.provider
-    
+
     def _get_provider_config(self) -> ProviderConfig:
         cfg = config_loader.llm_config.providers.get(self.provider)
         if not cfg:
@@ -77,8 +80,8 @@ class LLMProvider:
         return cfg
 
     def get_llm(self, callback) -> LLM:
-      return None
-    
+        return None
+
     def _get_llm_url(self, default: str) -> str:
         return (
             self.provider_config.models[self.model].url
@@ -96,7 +99,7 @@ class LLMProvider:
             if self.provider_config.models[self.model].credentials is not None
             else self.provider_config.credentials
         )
-    
+
     def status(self):
         """Provide LLM schema as a string containing formatted and indented JSON."""
         import json

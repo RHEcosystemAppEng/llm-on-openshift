@@ -1,26 +1,24 @@
-
-from functools import reduce
 import math
-import random
-import fractions
+from functools import reduce
 
-class RoundRobinScheduler():    
-   
+
+class RoundRobinScheduler:
+
     cw = 0
-    i = -1 
+    i = -1
     data_set = []
     max_s = None
     gcd_s = None
     len_s = None
     counter = {}
 
-    def __init__(self, s = None):
+    def __init__(self, s=None):
         self._init_dataset(s)
 
     def _init_dataset(self, s):
         self.data_set = s
         self.max_s = max(s, key=lambda x: x[1])[1]
-        self.gcd_s = reduce(math.gcd, [ weight for data, weight in s])
+        self.gcd_s = reduce(math.gcd, [weight for data, weight in s])
         self.len_s = len(s)
 
     def schedule(self):
@@ -33,7 +31,7 @@ class RoundRobinScheduler():
                     if self.cw == 0:
                         return None
             if self.data_set[self.i][1] >= self.cw:
-                self._inc_counter(self.data_set[self.i]) 
+                self._inc_counter(self.data_set[self.i])
                 return self.data_set[self.i]
 
     def _inc_counter(self, item):
@@ -49,16 +47,16 @@ class RoundRobinScheduler():
     def reset_counter(self):
         self.counter = {}
 
-    def reset(self):             
+    def reset(self):
         self.cw = 0
-        self.i = -1 
+        self.i = -1
         self.data_set = []
         self.max_s = None
         self.gcd_s = None
         self.len_s = None
         self.reset_counter()
 
-    def get_next(self, n = 1):
+    def get_next(self, n=1):
         if n > 1:
-            return [ self.schedule() for i in range(0,n) ]
+            return [self.schedule() for i in range(0, n)]
         return self.schedule()

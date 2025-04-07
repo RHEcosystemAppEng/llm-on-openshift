@@ -1,10 +1,11 @@
 """Configuration loader."""
 
+import os
 import traceback
 from io import TextIOBase
-import os
 
 import yaml
+
 from utils.config import Config, ModelConfig, ProviderConfig
 
 config = None
@@ -192,10 +193,8 @@ def add_provider_and_model(
         model_cfg = provider_cfg.models.get(model_name)
         model_cfg.url = url
         model_cfg.enabled = enabled
-        model_cfg.credentials = (
-            api_key if api_key.strip() else model_cfg.credentials
-        )
-        param_dict = {}       
+        model_cfg.credentials = api_key if api_key.strip() else model_cfg.credentials
+        param_dict = {}
         if params:
             for param in params:
                 param_dict[param["name"]] = param["value"]

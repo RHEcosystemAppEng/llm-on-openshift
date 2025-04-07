@@ -1,5 +1,6 @@
 from langchain.callbacks.base import BaseCallbackHandler
 
+
 class QueueCallback(BaseCallbackHandler):
     """Callback handler for streaming LLM responses to a queue."""
 
@@ -11,4 +12,3 @@ class QueueCallback(BaseCallbackHandler):
 
     def on_llm_end(self, *args, **kwargs: any) -> None:
         return self.q.empty()
-        pass
