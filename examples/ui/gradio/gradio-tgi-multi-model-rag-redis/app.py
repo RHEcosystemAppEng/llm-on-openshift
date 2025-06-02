@@ -1,21 +1,17 @@
 import os
-from dotenv import load_dotenv
 
-from ui.question_answer_tab import QuestionAndAnswerTab
-load_dotenv()
-
-import os
 import gradio as gr
+from dotenv import load_dotenv
 from prometheus_client import start_http_server
 
 from ui.configuration_tab import ConfigurationTab
 from ui.proposal_generation_tab import ProposalGenerationTab
+from ui.question_answer_tab import QuestionAndAnswerTab
 from ui.util import create_scheduler
 
-
+load_dotenv()
 os.environ["REQUESTS_CA_BUNDLE"] = ""
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
-# initialization
 
 # Parameters
 APP_TITLE = os.getenv("APP_TITLE", "LLM RAG Demo")
@@ -56,14 +52,13 @@ css = """
 
 """
 
-with gr.Blocks(title="HatBot", css=css) as demo:
+with gr.Blocks(title=APP_TITLE, css=css) as demo:
     provider_model_var = gr.State()
     with gr.Tab("Proposal Generator Chatbot", id=1) as proposal_tab:
         proposal_generator_tab = ProposalGenerationTab(proposal_tab, demo)
         proposal_generator_tab.generate(gr, provider_model_var)
-    
-    with gr.Tab(
-        label="Q & A Chatbot", id=2) as q_a_tab:
+
+    with gr.Tab(label="Q & A Chatbot", id=2) as q_a_tab:
         configuration_tab = QuestionAndAnswerTab(q_a_tab, demo)
         configuration_tab.generate(gr, provider_model_var)
 

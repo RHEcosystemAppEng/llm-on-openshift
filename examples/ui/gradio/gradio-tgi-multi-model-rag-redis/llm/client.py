@@ -1,17 +1,11 @@
 import json
-import requests
+from typing import AsyncIterator, Dict, Iterator, List, Optional
 
+import requests
 from aiohttp import ClientSession, ClientTimeout
 from pydantic import ValidationError
-from typing import Dict, Optional, List, AsyncIterator, Iterator
-
-from text_generation.types import (
-    StreamResponse,
-    Response,
-    Request,
-    Parameters,
-)
 from text_generation.errors import parse_error
+from text_generation.types import Parameters, Request, Response, StreamResponse
 
 
 class Client:

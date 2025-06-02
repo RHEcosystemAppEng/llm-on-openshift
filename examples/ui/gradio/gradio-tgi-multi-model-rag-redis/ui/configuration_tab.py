@@ -1,12 +1,20 @@
 import pandas as pd
-from llm.llm_factory import LLMFactory, NVIDIA
-from ui.util import create_scheduler, get_llm_factory, get_provider_list_as_df, get_provider_model, get_selected_provider, is_provider_visible
+
+from llm.llm_factory import NVIDIA, LLMFactory
+from ui.util import (
+    create_scheduler,
+    get_llm_factory,
+    get_provider_list_as_df,
+    is_provider_visible,
+)
 from utils import config_loader
+
 
 class ConfigurationTab:
     def __init__(self, tab, parent):
         self.tab = tab
         self.parent = parent
+
     def generate(self, gr, provider_model_var):
         with gr.Accordion("Type"):
             type_dropdown = gr.Dropdown(
@@ -39,7 +47,9 @@ class ConfigurationTab:
             dataframe_ui = gr.Dataframe(value=df, interactive=False)
             add_btn = gr.Button("Add Provider", elem_classes="add_provider_bu")
 
-        with gr.Accordion(label="Add Provider",visible=False) as add_provider_accordian:
+        with gr.Accordion(
+            label="Add Provider", visible=False
+        ) as add_provider_accordian:
             with gr.Blocks() as add_provider_table:
                 with gr.Row():
                     with gr.Column():
@@ -173,9 +183,7 @@ class ConfigurationTab:
                             add_provider_submit_button: gr.Button(
                                 "Add", elem_classes="add_provider_bu"
                             ),
-                            add_provider_accordian: gr.Accordion(
-                                visible=False
-                            ),
+                            add_provider_accordian: gr.Accordion(visible=False),
                         }
 
             def df_select_callback(df: pd.DataFrame, evt: gr.SelectData):
@@ -227,7 +235,7 @@ class ConfigurationTab:
                         "Update", elem_classes="add_provider_bu"
                     ),
                     add_provider_accordian: gr.Accordion(
-                        label="Modify Provider",visible=True
+                        label="Modify Provider", visible=True
                     ),
                 }
 
@@ -271,7 +279,7 @@ class ConfigurationTab:
                         "Add", elem_classes="add_provider_bu"
                     ),
                     add_provider_accordian: gr.Accordion(
-                        label="Add Provider",visible=True
+                        label="Add Provider", visible=True
                     ),
                 }
 
@@ -291,7 +299,6 @@ class ConfigurationTab:
                     add_provider_accordian,
                 ],
             )
-
 
         def validate_add_provider(
             provider_name, model_name, url, temperature, max_toxens, weight
@@ -376,10 +383,10 @@ class ConfigurationTab:
                     "Add", elem_classes="add_provider_bu"
                 ),
                 add_provider_accordian: gr.Accordion(
-                        label="Modify Provider",visible=False
+                    label="Modify Provider", visible=False
                 ),
             }
-        
+
         add_provider_submit_button.click(
             validate_add_provider,
             inputs=[
@@ -419,7 +426,6 @@ class ConfigurationTab:
             ],
         )
 
-
         def initialize(provider_model):
             df = get_provider_list_as_df()
             df_component = gr.Dataframe(
@@ -438,5 +444,7 @@ class ConfigurationTab:
             }
 
         self.tab.select(
-            initialize, inputs=[provider_model_var], outputs=[provider_model_var, dataframe_ui, type_dropdown]
+            initialize,
+            inputs=[provider_model_var],
+            outputs=[provider_model_var, dataframe_ui, type_dropdown],
         )

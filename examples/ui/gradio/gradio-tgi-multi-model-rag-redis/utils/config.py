@@ -2,6 +2,7 @@
 
 from typing import Dict, Optional
 
+
 def _get_attribute_from_file(data: dict, file_name_key: str) -> Optional[str]:
     """Retrieve value of an attribute from a file."""
     file_path = data.get(file_name_key)
@@ -10,11 +11,11 @@ def _get_attribute_from_file(data: dict, file_name_key: str) -> Optional[str]:
             with open(file_path, mode="r") as f:
                 return f.read().rstrip()
         except Exception as err:
-            print (err)
+            print(err)
     return None
 
 
-class ModelConfig():
+class ModelConfig:
     """Model configuration."""
 
     name: Optional[str] = None
@@ -29,7 +30,9 @@ class ModelConfig():
             return
         self.name = data.get("name", None)
         self.url = data.get("url", None)
-        self.credentials = data.get("credentials", None) or _get_attribute_from_file(data, "credentials_path")
+        self.credentials = data.get("credentials", None) or _get_attribute_from_file(
+            data, "credentials_path"
+        )
         self.enabled = data.get("enabled", True)
         self.weight = data.get("weight", 1)
         self.params = {}
@@ -39,14 +42,14 @@ class ModelConfig():
                 self.params[param["name"]] = param["value"]
 
 
-class ProviderConfig():
+class ProviderConfig:
     """LLM provider configuration."""
 
     name: Optional[str] = None
     url: Optional[str] = None
     credentials: Optional[str] = None
     enabled: Optional[bool] = None
-    
+
     def __init__(self, data: Optional[dict] = None) -> None:
         """Initialize configuration and perform basic validation."""
         self.models = {}
@@ -61,7 +64,8 @@ class ProviderConfig():
                 model = ModelConfig(m)
                 self.models[m["name"]] = model
 
-class LLMProviders():
+
+class LLMProviders:
     """LLM providers configuration."""
 
     providers: Dict[str, ProviderConfig] = {}
@@ -73,8 +77,9 @@ class LLMProviders():
         for p in data:
             provider = ProviderConfig(p)
             self.providers[p["name"]] = provider
- 
-class Config():
+
+
+class Config:
     """Global service configuration."""
 
     llm_providers: Optional[LLMProviders] = None
@@ -92,5 +97,3 @@ class Config():
         self.default_provider = data.get("default_provider", None)
         self.default_model = data.get("default_model", None)
         self.type = data.get("type", "default")
-
-

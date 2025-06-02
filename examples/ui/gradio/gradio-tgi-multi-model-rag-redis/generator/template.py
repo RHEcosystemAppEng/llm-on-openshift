@@ -3,7 +3,7 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 VECTOR_DB_QUERY_TEMPLATE = """
     Generate a structured project proposal for the product **{product}** addressed to the company **{company}**.
     The proposal should include the following related to the product  **{product}**:
-    
+
     1. **Project Title**
     2. **Executive Summary**
     3. **Background & Probleççm Statement**
@@ -24,10 +24,10 @@ Instructions:
     You are an AI assistant specialized in writing structured project proposals.
     Use ONLY the provided context to generate the proposal.
     Do NOT use any external knowledge beyond what is in the context.
-    
+
     ### Context:
     {context}
-    
+
     ---
     ### QUESTION:
     {question}
@@ -57,7 +57,7 @@ Old Proposal:
 [/INST]
 """
 
-QUERY_UPDATE_PROPOSAL_TEMPLATE = """"
+QUERY_UPDATE_PROPOSAL_TEMPLATE = """
 ### [INST]
 Old Proposal:
 {old_proposal}
@@ -85,17 +85,15 @@ CONTEXTUALIZE_Q_PROMPT = ChatPromptTemplate.from_messages(
     ]
 )
 
-Q_AND_A_SYSTEM_PROMPT = (
-    """
-    You are an assistant for question-answering tasks. 
+Q_AND_A_SYSTEM_PROMPT = """
+    You are an assistant for question-answering tasks.
     Use the following pieces of retrieved context to
-    answer the question. If you don't know the answer, 
-    just say that you don't know. Use three sentences maximum 
+    answer the question. If you don't know the answer,
+    just say that you don't know. Use three sentences maximum
     and keep the answer concise.
-    Context: {context} 
+    Context: {context}
 
     """
-)
 
 Q_AND_A_PROMPT = ChatPromptTemplate.from_messages(
     [
@@ -109,17 +107,16 @@ Q_A_PROMPT = """
 ### [INST]
 Instructions:
     You are an AI assistant for question-answering tasks. Use the following pieces of retrieved context to
-    answer the question. If you don't know the answer, just say that you don't know. Use three sentences maximum 
+    answer the question. If you don't know the answer, just say that you don't know. Use three sentences maximum
     and keep the answer concise.
-    
+
     ### Context:
     {context}
-    
+
     ---
-    ### QUESTION: 
+    ### QUESTION:
     {question}
 
     Helpful Answer:
 [/INST]
 """
-
